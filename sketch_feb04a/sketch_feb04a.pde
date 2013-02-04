@@ -3,6 +3,8 @@ int N = 50;
 float size = 16.0;
 float minSpeed = 20.0, maxSpeed = 200.0;
 float mousePower = 250.0;
+float SeparationPower = 500000.0;
+float SeparationBehaviorRange = size * 5;
 boolean trail = false;
 // end settings
 
@@ -25,7 +27,7 @@ PVector randomVector(float minSize, float maxSize)
 
 void setup()
 {
-  size(800, 800);
+  size(displayWidth, displayHeight);
   background(255);
 
   pos = new PVector[N];
@@ -58,6 +60,21 @@ void draw()
     
     // reset
     acc[n] = new PVector(0.0, 0.0);
+    
+    // separation
+    for(int m = 0; m < N; m++)
+    {
+      if(m != n)
+      {
+        float distance = PVector.dist(pos[n], pos[m]);
+        if(distance < SeparationBehaviorRange)
+        {
+          PVector separationAcc = PVector.sub(pos[m], pos[n]);
+          separationAcc.setMag(-SeparationPower * 1.0 / sq(distance));
+          acc[n] = PVector.add(acc[n], separationAcc);
+        }
+      }
+    }
     
     // mouse
     if(mousePressed)
