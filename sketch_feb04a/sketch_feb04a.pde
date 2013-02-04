@@ -5,6 +5,7 @@ float minSpeed = 20.0, maxSpeed = 400.0;
 float mousePower = 500.0;
 float SeparationPower = 500000.0;
 float CohesionPower = 400.0;
+float AlignmentPower = 0.05;
 float SeparationBehaviorRange = size * 5;
 float VelocityDamping = 0.99;
 // end settings
@@ -18,7 +19,10 @@ float MouseModeRepulse =  1.0;
 boolean Wander = true;
 boolean Separation = true;
 boolean Cohesion = true;
+boolean Alignment = true;
+
 boolean trail = false;
+boolean paused = false;
 // end modes
 
 PVector[] pos;
@@ -65,6 +69,10 @@ void draw()
   }
   float now = millis() / 1000.0;
   float dt = now - lastTime;
+  lastTime = now;
+  
+  if(paused)
+    return;
   
   if(!trail)
     background(255);
@@ -77,13 +85,16 @@ void draw()
     acc[n] = new PVector(0.0, 0.0);
     
     // n^2 behaviors
-    float cohesionTotalWeight = 0.0;
+    float totalWeight = 0.0;
     PVector weightedCenter = new PVector(0.0, 0.0);
+    PVector weightedAverageVel = new PVector(0.0, 0.0);
     for(int m = 0; m < N; m++)
     {
       if(m != n)
       {
         float distance = PVector.dist(pos[n], pos[m]);
+        float weight = 1.0 / sq(distance);
+        totalWeight += weight;
         
         if(Separation)
         {
@@ -97,10 +108,15 @@ void draw()
         
         if(Cohesion)
         {
-          float weight = 1.0 / sq(distance);
-          cohesionTotalWeight += weight;
+          
           PVector weightedPos = PVector.mult(pos[m], weight);
           weightedCenter = PVector.add(weightedCenter, weightedPos);
+        }
+        
+        if(Alignment)
+        {
+          PVector weightedVel = PVector.mult(vel[m], weight);
+          weightedAverageVel = PVector.add(weightedAverageVel, weightedVel);
         }
         
       }
@@ -108,8 +124,14 @@ void draw()
     
     if(Cohesion)
     {
-      weightedCenter = PVector.mult(weightedCenter, 1.0 / cohesionTotalWeight);
+      weightedCenter = PVector.mult(weightedCenter, 1.0 / totalWeight);
       acc[n] = PVector.add(acc[n], accelerationFromToMag(pos[n], weightedCenter, CohesionPower));
+    }
+    if(Alignment)
+    {
+      weightedAverageVel = PVector.mult(weightedAverageVel, 1.0 / totalWeight);
+      PVector headingError = PVector.sub(weightedAverageVel, vel[n]);
+      acc[n] = PVector.add(acc[n], PVector.mult(headingError, AlignmentPower));
     }
     
     // mouse
@@ -154,45 +176,32 @@ void draw()
     popMatrix();
   }
   
-  lastTime = now;
+  
 }
 
 void keyPressed() {
   switch(key)
   {
-    // a,A - Switch to attraction mode (for when mouse is held down).
-    case 'a': case'A':
-      mouseMode = MouseModeAttract;
-    break;
-    // r,R - Switch to repulsion mode (for when mouse is held down).
-    case 'r': case'R':
-      mouseMode = MouseModeRepulse;
-    break;
+    case 'a': case'A': mouseMode = MouseModeAttract; break;
+    case 'r': case'R': mouseMode = MouseModeRepulse; break;
+    
     // s,S - Cause all creatures to be instantly scattered to random positions in the window.
     // p,P - Toggle whether to have creatures leave a path, that is, whether the window is cleared each display step or not.
-    case 'p': case 'P':
-      trail = !trail;
-    break;
+    case 'p': case 'P': trail = !trail; break;
     
     // c,C - Clear the window (useful when creatures are leaving paths).
-    // 1 - Toggle the flock centering forces on/off.
-    case '1':
-      Cohesion = !Cohesion;
-    break;
-    // 2 - Toggle the velocity matching forces on/off.
-    // 3 - Toggle the collision avoidance forces on/off.
-    case '3':
-      Separation = !Separation;
-    break;
-    // 4 - Toggle the wandering force on/off.
-    case '4':
-      Wander = !Wander;
-    break;
+    
+    
+    case '1': Cohesion   = !Cohesion;   break;
+    case '2': Alignment  = !Alignment;  break;
+    case '3': Separation = !Separation; break;
+    case '4': Wander     = !Wander;     break;
+    
     // =,+ - Add one new creature to the simulation. You should allow up to 100 creatures to be created.
     // - (minus sign) - Remove one new creature from the simulation (unless there are none already).
     // space bar - Start or stop the simulation (toggle between these).
+    case ' ': paused = !paused; break;
     
     default:
   }
-
 }
