@@ -2,7 +2,7 @@
 int N = 50;
 float size = 16.0;
 float minSpeed = 20.0, maxSpeed = 200.0;
-float mousePower = 200.0;
+float mousePower = 250.0;
 boolean trail = false;
 // end settings
 
@@ -21,7 +21,6 @@ float mouseMode = MouseModeAttract;
 PVector randomVector(float minSize, float maxSize)
 {
   return PVector.mult(PVector.fromAngle(random(0.0, 2.0 * PI)), random(minSize, maxSize));
-  //return new PVector(random(-1.0, 1.0), random(-1.0, 1.0));
 }
 
 void setup()
@@ -69,7 +68,7 @@ void draw()
     }
     
     // randomness
-    acc[n] = PVector.add(acc[n], randomVector(0.0, 50.0));
+    acc[n] = PVector.add(acc[n], randomVector(0.0, 100.0));
     
     /***** velocity *****/
     vel[n] = PVector.add(vel[n], PVector.mult(acc[n], dt));
