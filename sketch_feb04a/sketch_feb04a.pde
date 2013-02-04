@@ -1,5 +1,5 @@
 // settings
-int N = 40;
+int N = 40; int maxN = 100;
 float size = 16.0;
 float minSpeed = 20.0, maxSpeed = 400.0;
 float mousePower = 500.0;
@@ -52,13 +52,16 @@ PVector accelerationFromToMag(PVector from, PVector to, float mag)
   return acc;
 }
 
+void scatterN(int n)
+{
+  pos[n] = new PVector(random(0, width), random(0, height));
+  vel[n] = randomVector(minSpeed, maxSpeed);
+}
+
 void scatter()
 {
-  for(int n = 0; n < N; n++)
-  {
-    pos[n] = new PVector(random(0, width), random(0, height));
-    vel[n] = randomVector(minSpeed, maxSpeed);
-  } 
+  for(int n = 0; n < maxN; n++)
+    scatterN(n);
 }
 
 void setup()
@@ -66,9 +69,9 @@ void setup()
   size(displayWidth, displayHeight);
   background(255);
 
-  pos = new PVector[N];
-  vel = new PVector[N];
-  acc = new PVector[N];
+  pos = new PVector[maxN];
+  vel = new PVector[maxN];
+  acc = new PVector[maxN];
   
   scatter();
 }
@@ -91,7 +94,25 @@ void draw()
     background(255);
   if(clearOnce)
     clearOnce = false;
-    
+  
+  if(addCreature)
+  {
+    if(N < maxN-1)
+    {
+      N++;
+      scatterN(N);
+    }
+    addCreature = false;
+  }
+  if(removeCreature)
+  {
+    if(N > 2)
+    {
+      N--;
+    }
+    removeCreature = false;
+  }
+  
   if(scatterOnce)
   {
     scatter();
