@@ -28,6 +28,8 @@ boolean paused = false;
 // triggers
 boolean clearOnce = false;
 boolean scatterOnce = false;
+boolean addCreature = false;
+boolean removeCreature = false;
 // end triggers
 
 PVector[] pos;
@@ -36,6 +38,7 @@ PVector[] acc;
 
 float lastTime = -1.0;
 float mouseMode = MouseModeAttract;
+String status;
 
 PVector randomVector(float minSize, float maxSize)
 {
@@ -193,8 +196,10 @@ void draw()
       triangle(0, size, -size/4.0, 0, size/4.0, 0);
     popMatrix();
   }
-  
-  
+
+  text("Centering: "+Cohesion+" Collisions: "+Separation+" Velocity matching: "+Alignment+" Wandering: "+Wander+"\n"+
+       "Critters: "+N
+       , 0, 24);
 }
 
 void keyPressed() {
@@ -203,13 +208,9 @@ void keyPressed() {
     case 'a': case'A': mouseMode = MouseModeAttract; break;
     case 'r': case'R': mouseMode = MouseModeRepulse; break;
     
-    // s,S - Cause all creatures to be instantly scattered to random positions in the window.
     case 's': case 'S': scatterOnce = true; break;
     
-    // p,P - Toggle whether to have creatures leave a path, that is, whether the window is cleared each display step or not.
     case 'p': case 'P': trail = !trail; break;
-    
-    // c,C - Clear the window (useful when creatures are leaving paths).
     case 'c': case 'C': clearOnce = true; break;
     
     case '1': Cohesion   = !Cohesion;   break;
@@ -217,11 +218,11 @@ void keyPressed() {
     case '3': Separation = !Separation; break;
     case '4': Wander     = !Wander;     break;
     
-    // =,+ - Add one new creature to the simulation. You should allow up to 100 creatures to be created.
-    // - (minus sign) - Remove one new creature from the simulation (unless there are none already).
-    // space bar - Start or stop the simulation (toggle between these).
+    case '=': case '+': addCreature    = true; break;
+    case '-':           removeCreature = true; break;
+    
     case ' ': paused = !paused; break;
     
-    default:
+    default: break;
   }
 }
