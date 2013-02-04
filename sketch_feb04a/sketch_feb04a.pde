@@ -1,15 +1,22 @@
 // settings
 int N = 50;
 float size = 16.0;
-float minSpeed = 10.0, maxSpeed = 100.0;
+float minSpeed = 20.0, maxSpeed = 200.0;
+float mousePower = 200.0;
 boolean trail = false;
 // end settings
+
+// defines
+float MouseModeAttract = -1.0;
+float MouseModeRepulse =  1.0;
+// end defines
 
 PVector[] pos;
 PVector[] vel;
 PVector[] acc;
 
 float lastTime = -1.0;
+float mouseMode = MouseModeAttract;
 
 PVector randomVector(float minSize, float maxSize)
 {
@@ -48,14 +55,31 @@ void draw()
   
   for(int n = 0; n < N; n++)
   {
-    acc[n] = randomVector(0.0, 100.0);
+    /***** acceleration *****/
+    
+    // reset
+    acc[n] = new PVector(0.0, 0.0);
+    
+    // mouse
+    if(mousePressed)
+    {
+      PVector mouseAcc = new PVector(pos[n].x - mouseX, pos[n].y - mouseY);
+      mouseAcc.setMag(mouseMode * mousePower);
+      acc[n] = PVector.add(acc[n], mouseAcc); 
+    }
+    
+    // randomness
+    acc[n] = PVector.add(acc[n], randomVector(0.0, 50.0));
+    
+    /***** velocity *****/
     vel[n] = PVector.add(vel[n], PVector.mult(acc[n], dt));
     if(vel[n].mag() < minSpeed)
       vel[n].setMag(minSpeed);
     if(vel[n].mag() > maxSpeed)
       vel[n].setMag(maxSpeed);
-    pos[n] = PVector.add(pos[n], PVector.mult(vel[n], dt));
     
+    /***** position *****/
+    pos[n] = PVector.add(pos[n], PVector.mult(vel[n], dt));
     if(pos[n].x < -size)
        pos[n].x = width + size;
     if(pos[n].x > width + size)
@@ -84,7 +108,13 @@ void keyPressed() {
   switch(key)
   {
     // a,A - Switch to attraction mode (for when mouse is held down).
+    case 'a': case'A':
+      mouseMode = MouseModeAttract;
+    break;
     // r,R - Switch to repulsion mode (for when mouse is held down).
+    case 'r': case'R':
+      mouseMode = MouseModeRepulse;
+    break;
     // s,S - Cause all creatures to be instantly scattered to random positions in the window.
     // p,P - Toggle whether to have creatures leave a path, that is, whether the window is cleared each display step or not.
     case 'p': case 'P':
