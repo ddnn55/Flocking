@@ -25,6 +25,10 @@ boolean trail = false;
 boolean paused = false;
 // end modes
 
+// triggers
+boolean clearOnce = false;
+// end triggers
+
 PVector[] pos;
 PVector[] vel;
 PVector[] acc;
@@ -74,8 +78,10 @@ void draw()
   if(paused)
     return;
   
-  if(!trail)
+  if(!trail || clearOnce)
     background(255);
+  if(clearOnce)
+    clearOnce = false;
   
   for(int n = 0; n < N; n++)
   {
@@ -190,7 +196,7 @@ void keyPressed() {
     case 'p': case 'P': trail = !trail; break;
     
     // c,C - Clear the window (useful when creatures are leaving paths).
-    
+    case 'c': case 'C': clearOnce = true; break;
     
     case '1': Cohesion   = !Cohesion;   break;
     case '2': Alignment  = !Alignment;  break;
