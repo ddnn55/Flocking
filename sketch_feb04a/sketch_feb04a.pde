@@ -1,9 +1,10 @@
 // settings
-int N = 50;
+int N = 40;
 float size = 16.0;
 float minSpeed = 20.0, maxSpeed = 400.0;
 float mousePower = 500.0;
 float SeparationPower = 500000.0;
+float CohesionPower = 400.0;
 float SeparationBehaviorRange = size * 5;
 float VelocityDamping = 0.99;
 // end settings
@@ -14,7 +15,9 @@ float MouseModeRepulse =  1.0;
 // end defines
 
 // modes
-boolean SeparationOn = true;
+boolean Wander = true;
+boolean Separation = true;
+boolean Cohesion = true;
 boolean trail = false;
 // end modes
 
@@ -28,6 +31,13 @@ float mouseMode = MouseModeAttract;
 PVector randomVector(float minSize, float maxSize)
 {
   return PVector.mult(PVector.fromAngle(random(0.0, 2.0 * PI)), random(minSize, maxSize));
+}
+
+PVector accelerationFromToMag(PVector from, PVector to, float mag)
+{
+  PVector acc = PVector.sub(to, from);
+  acc.setMag(mag);
+  return acc;
 }
 
 void setup()
@@ -66,20 +76,40 @@ void draw()
     // reset
     acc[n] = new PVector(0.0, 0.0);
     
-    // separation
-    if(SeparationOn)
+    // n^2 behaviors
+    float cohesionTotalWeight = 0.0;
+    PVector weightedCenter = new PVector(0.0, 0.0);
     for(int m = 0; m < N; m++)
     {
       if(m != n)
       {
         float distance = PVector.dist(pos[n], pos[m]);
-        if(distance < SeparationBehaviorRange)
+        
+        if(Separation)
         {
-          PVector separationAcc = PVector.sub(pos[m], pos[n]);
-          separationAcc.setMag(-SeparationPower * 1.0 / sq(distance));
-          acc[n] = PVector.add(acc[n], separationAcc);
+          if(distance < SeparationBehaviorRange)
+          {
+            PVector separationAcc = PVector.sub(pos[m], pos[n]);
+            separationAcc.setMag(-SeparationPower * 1.0 / sq(distance));
+            acc[n] = PVector.add(acc[n], separationAcc);
+          }
         }
+        
+        if(Cohesion)
+        {
+          float weight = 1.0 / sq(distance);
+          cohesionTotalWeight += weight;
+          PVector weightedPos = PVector.mult(pos[m], weight);
+          weightedCenter = PVector.add(weightedCenter, weightedPos);
+        }
+        
       }
+    }
+    
+    if(Cohesion)
+    {
+      weightedCenter = PVector.mult(weightedCenter, 1.0 / cohesionTotalWeight);
+      acc[n] = PVector.add(acc[n], accelerationFromToMag(pos[n], weightedCenter, CohesionPower));
     }
     
     // mouse
@@ -91,7 +121,8 @@ void draw()
     }
     
     // randomness
-    acc[n] = PVector.add(acc[n], randomVector(0.0, 100.0));
+    if(Wander)
+      acc[n] = PVector.add(acc[n], randomVector(0.0, 100.0));
     
     /***** velocity *****/
     vel[n] = PVector.mult(PVector.add(vel[n], PVector.mult(acc[n], dt)), VelocityDamping);
@@ -145,12 +176,18 @@ void keyPressed() {
     
     // c,C - Clear the window (useful when creatures are leaving paths).
     // 1 - Toggle the flock centering forces on/off.
+    case '1':
+      Cohesion = !Cohesion;
+    break;
     // 2 - Toggle the velocity matching forces on/off.
     // 3 - Toggle the collision avoidance forces on/off.
     case '3':
-      SeparationOn = !SeparationOn;
+      Separation = !Separation;
     break;
     // 4 - Toggle the wandering force on/off.
+    case '4':
+      Wander = !Wander;
+    break;
     // =,+ - Add one new creature to the simulation. You should allow up to 100 creatures to be created.
     // - (minus sign) - Remove one new creature from the simulation (unless there are none already).
     // space bar - Start or stop the simulation (toggle between these).
