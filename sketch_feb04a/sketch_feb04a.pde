@@ -7,7 +7,7 @@ float SeparationPower = 500000.0;
 float CohesionPower = 400.0;
 float AlignmentPower = 0.05;
 float SeparationBehaviorRange = size * 5;
-float VelocityDamping = 0.99;
+float VelocityDamping = 0.999;
 // end settings
 
 // defines
