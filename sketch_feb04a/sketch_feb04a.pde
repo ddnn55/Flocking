@@ -27,6 +27,7 @@ boolean paused = false;
 
 // triggers
 boolean clearOnce = false;
+boolean scatterOnce = false;
 // end triggers
 
 PVector[] pos;
@@ -48,6 +49,15 @@ PVector accelerationFromToMag(PVector from, PVector to, float mag)
   return acc;
 }
 
+void scatter()
+{
+  for(int n = 0; n < N; n++)
+  {
+    pos[n] = new PVector(random(0, width), random(0, height));
+    vel[n] = randomVector(minSpeed, maxSpeed);
+  } 
+}
+
 void setup()
 {
   size(displayWidth, displayHeight);
@@ -57,11 +67,7 @@ void setup()
   vel = new PVector[N];
   acc = new PVector[N];
   
-  for(int n = 0; n < N; n++)
-  {
-    pos[n] = new PVector(random(0, width), random(0, height));
-    vel[n] = randomVector(minSpeed, maxSpeed);
-  }
+  scatter();
 }
 
 void draw()
@@ -82,6 +88,12 @@ void draw()
     background(255);
   if(clearOnce)
     clearOnce = false;
+    
+  if(scatterOnce)
+  {
+    scatter();
+    scatterOnce = false;
+  }
   
   for(int n = 0; n < N; n++)
   {
@@ -192,6 +204,8 @@ void keyPressed() {
     case 'r': case'R': mouseMode = MouseModeRepulse; break;
     
     // s,S - Cause all creatures to be instantly scattered to random positions in the window.
+    case 's': case 'S': scatterOnce = true; break;
+    
     // p,P - Toggle whether to have creatures leave a path, that is, whether the window is cleared each display step or not.
     case 'p': case 'P': trail = !trail; break;
     
