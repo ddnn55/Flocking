@@ -1,17 +1,22 @@
 // settings
 int N = 50;
 float size = 16.0;
-float minSpeed = 20.0, maxSpeed = 200.0;
-float mousePower = 250.0;
+float minSpeed = 20.0, maxSpeed = 400.0;
+float mousePower = 500.0;
 float SeparationPower = 500000.0;
 float SeparationBehaviorRange = size * 5;
-boolean trail = false;
+float VelocityDamping = 0.99;
 // end settings
 
 // defines
 float MouseModeAttract = -1.0;
 float MouseModeRepulse =  1.0;
 // end defines
+
+// modes
+boolean SeparationOn = true;
+boolean trail = false;
+// end modes
 
 PVector[] pos;
 PVector[] vel;
@@ -62,6 +67,7 @@ void draw()
     acc[n] = new PVector(0.0, 0.0);
     
     // separation
+    if(SeparationOn)
     for(int m = 0; m < N; m++)
     {
       if(m != n)
@@ -88,7 +94,7 @@ void draw()
     acc[n] = PVector.add(acc[n], randomVector(0.0, 100.0));
     
     /***** velocity *****/
-    vel[n] = PVector.add(vel[n], PVector.mult(acc[n], dt));
+    vel[n] = PVector.mult(PVector.add(vel[n], PVector.mult(acc[n], dt)), VelocityDamping);
     if(vel[n].mag() < minSpeed)
       vel[n].setMag(minSpeed);
     if(vel[n].mag() > maxSpeed)
@@ -141,6 +147,9 @@ void keyPressed() {
     // 1 - Toggle the flock centering forces on/off.
     // 2 - Toggle the velocity matching forces on/off.
     // 3 - Toggle the collision avoidance forces on/off.
+    case '3':
+      SeparationOn = !SeparationOn;
+    break;
     // 4 - Toggle the wandering force on/off.
     // =,+ - Add one new creature to the simulation. You should allow up to 100 creatures to be created.
     // - (minus sign) - Remove one new creature from the simulation (unless there are none already).
